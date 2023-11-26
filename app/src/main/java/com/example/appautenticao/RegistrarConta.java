@@ -2,6 +2,7 @@ package com.example.appautenticao;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -10,11 +11,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.appautenticao.databinding.ActivityLoginBinding;
 import com.example.appautenticao.databinding.ActivityRegistrarContaBinding;
 import com.example.appautenticao.domain.Account;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RegistrarConta extends AppCompatActivity {
 
@@ -24,23 +23,19 @@ public class RegistrarConta extends AppCompatActivity {
     private Spinner spinnerCategory;
     private Button btnRegisterAccount;
 
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityRegistrarContaBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Inicializar o Firebase
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference accountsRef = database.getReference("accounts");
-
-
-        editTextAccountName = findViewById(R.id.editTextAccountName);
-        editTextAmount = findViewById(R.id.editTextAmount);
-        editTextDueDate = findViewById(R.id.editTextDueDate);
+        editTextAccountName = findViewById(R.id.addTituloConta);
+        editTextAmount = findViewById(R.id.addValorPagar);
+        editTextDueDate = findViewById(R.id.addDataVencimento);
         spinnerCategory = findViewById(R.id.spinnerCategory);
         btnRegisterAccount = findViewById(R.id.btnAdicionarConta);
-
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 this,
@@ -49,7 +44,6 @@ public class RegistrarConta extends AppCompatActivity {
         );
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
-
 
         btnRegisterAccount.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,28 +54,24 @@ public class RegistrarConta extends AppCompatActivity {
     }
 
     private void registerAccount() {
-        // Obter os valores dos campos
         String accountName = editTextAccountName.getText().toString();
         String amount = editTextAmount.getText().toString();
         String dueDate = editTextDueDate.getText().toString();
         String category = spinnerCategory.getSelectedItem().toString();
 
-        // Obter uma referência para o nó "accounts" no Firebase
-        DatabaseReference accountsRef = FirebaseDatabase.getInstance().getReference("accounts");
-
-        // Criar um ID único para a nova conta
-        String accountId = accountsRef.push().getKey();
-
-        // Criar um objeto Account para representar os dados da conta
-        Account newAccount = new Account(accountId, accountName, amount, dueDate, category);
-
-        // Enviar os dados para o Firebase
-        accountsRef.child(accountId).setValue(newAccount);
-
-        // Exemplo de como você pode exibir uma mensagem simples
-        Toast.makeText(this, "Conta Registrada!\nNome: " + accountName +
-                "\nValor: " + amount +
-                "\nData de Vencimento: " + dueDate +
-                "\nCategoria: " + category, Toast.LENGTH_SHORT).show();
+        db.collection("Contas")
+                .document(accountName + " - " + category)
+                .set(new Account(accountName, amount, dueDate, category))
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Sucesso ao salvar no Firestore
+                        Toast.makeText(RegistrarConta.this, "Conta Registrada com Sucesso!", Toast.LENGTH_SHORT).show();
+                        finish();
+                        startActivity(new Intent(this, MainActivity.class));
+                    } else {
+                        // Falha ao salvar no Firestore
+                        Toast.makeText(RegistrarConta.this, "Erro ao Registrar Conta: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

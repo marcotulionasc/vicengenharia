@@ -3,6 +3,6 @@
         android:id="@+id/btnDeslogar"
         android:title="Deslogar"/>
     <item
-        android:id="@+id/action_insert_account"
+        android:id="@+id/btnAdicionarConta"
         android:title="Inserir Conta"/>
 </menu>

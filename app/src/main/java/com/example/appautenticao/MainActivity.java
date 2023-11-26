@@ -22,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
                 finish();
                 startActivity(new Intent(this, LoginActivity.class));
                 return true;
+            } else if (item.getItemId() == R.id.btnAdicionarConta) {
+                startActivity(new Intent(this, RegistrarConta.class));
             }
             return false;
         });
