@@ -16,12 +16,15 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        binding.btnDeslogar.setOnClickListener( view -> {
-            FirebaseAuth.getInstance().signOut();
-            finish();
-            startActivity(new Intent(this, LoginActivity.class));
+        binding.bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.btnDeslogar) {
+                FirebaseAuth.getInstance().signOut();
+                finish();
+                startActivity(new Intent(this, LoginActivity.class));
+                return true;
+            }
+            return false;
         });
-
     }
 
 }
